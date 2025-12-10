@@ -24,7 +24,7 @@ const citiesData = {
             name: "Халдерсфилд",
             population: "0.5 млн",
             description: "Англия, Западный Йоркшир",
-            coordinates: { left: "12%", top: "18%" }
+            coordinates: { left: "2%", top: "28%" }
         },
         {
             id: "kumertau",
