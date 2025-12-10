@@ -974,5 +974,49 @@ function addLogoutButton() {
     header.appendChild(logoutBtn);
 }
 
+// Простая версия для мобильных
+function simpleMobileAdaptation() {
+    if (!isMobileDevice()) return;
+    
+    const cityNames = document.querySelectorAll('.city-name-on-map');
+    const viewportWidth = window.innerWidth;
+    const baseWidth = 375; // iPhone шириной
+    
+    // Коэффициент масштаба
+    const scaleFactor = viewportWidth / baseWidth;
+    
+    cityNames.forEach(name => {
+        // Базовый размер шрифта
+        let fontSize = 12;
+        
+        // Уменьшаем при увеличении
+        if (scaleFactor < 0.9) { // Увеличено
+            fontSize = 10;
+        } else if (scaleFactor < 0.7) { // Сильно увеличено
+            fontSize = 8;
+        } else if (scaleFactor > 1.3) { // Уменьшено
+            fontSize = 14;
+        }
+        
+        // Для длинных названий делаем еще меньше
+        if (name.textContent.length > 12) {
+            fontSize = Math.max(8, fontSize - 2);
+        }
+        
+        name.style.fontSize = `${fontSize}px`;
+        name.style.lineHeight = '1.2';
+    });
+}
+
+// Добавьте в обработчик resize
+window.addEventListener('resize', function() {
+    if (isMobileDevice()) {
+        simpleMobileAdaptation();
+    }
+});
+
+// Вызовите при загрузке
+setTimeout(simpleMobileAdaptation, 500);
+
 // Вызываем после инициализации
 setTimeout(addLogoutButton, 1000);

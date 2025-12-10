@@ -1529,3 +1529,185 @@ const logoutBtnCSS = `
     background: rgba(248, 249, 250, 0.92);
     border: 1px solid rgba(206, 212, 218, 0.5);
 }
+
+/* ========== АДАПТИВНЫЕ НАЗВАНИЯ ГОРОДОВ ========== */
+
+.city-name-on-map.adaptive-text {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: font-size, transform;
+    pointer-events: auto !important; /* Чтобы работало на мобильных */
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .city-name-on-map {
+        font-size: 12px !important; /* Базовый размер на мобильных */
+        font-weight: 600;
+        text-shadow: 
+            2px 2px 3px rgba(255,255,255,0.9),
+            -2px 2px 3px rgba(255,255,255,0.9),
+            2px -2px 3px rgba(255,255,255,0.9),
+            -2px -2px 3px rgba(255,255,255,0.9),
+            0 2px 3px rgba(255,255,255,0.9),
+            0 -2px 3px rgba(255,255,255,0.9),
+            2px 0 3px rgba(255,255,255,0.9),
+            -2px 0 3px rgba(255,255,255,0.9) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        padding: 3px 6px !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Дополнительная адаптация при увеличении */
+    @media screen and (min-resolution: 2dppx) {
+        .city-name-on-map {
+            font-size: 11px !important;
+            padding: 2px 4px !important;
+        }
+    }
+    
+    /* При зуме */
+    .city-name-on-map.zoom-small {
+        font-size: 10px !important;
+        padding: 1px 3px !important;
+    }
+    
+    .city-name-on-map.zoom-very-small {
+        font-size: 8px !important;
+        padding: 1px 2px !important;
+        max-width: 100px;
+    }
+    
+    /* Длинные названия */
+    .city-name-on-map.long-name {
+        font-size: 10px !important;
+        max-width: 100px;
+    }
+    
+    .city-name-on-map.long-name.zoom-small {
+        font-size: 9px !important;
+    }
+    
+    .city-name-on-map.long-name.zoom-very-small {
+        font-size: 7px !important;
+        max-width: 80px;
+    }
+    
+    /* Адаптивное позиционирование при зуме */
+    .city-name-on-map.right-aligned {
+        left: 30px !important;
+        text-align: left !important;
+    }
+    
+    .city-name-on-map.left-aligned {
+        right: 30px !important;
+        text-align: right !important;
+    }
+    
+    .city-name-on-map.top-aligned {
+        bottom: 30px !important;
+        text-align: center !important;
+    }
+    
+    .city-name-on-map.bottom-aligned {
+        top: 30px !important;
+        text-align: center !important;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .city-name-on-map {
+        font-size: 11px !important;
+        max-width: 100px;
+    }
+    
+    .city-name-on-map.long-name {
+        font-size: 9px !important;
+        max-width: 90px;
+    }
+}
+
+/* Для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .city-name-on-map {
+        font-size: 12px !important;
+    }
+}
+
+/* Предотвращение слишком мелкого текста */
+.city-name-on-map {
+    min-font-size: 8px !important;
+}
+
+/* Улучшение читаемости при наведении */
+.city-marker-container:hover .city-name-on-map {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    z-index: 1001 !important;
+    transform: scale(1.05) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Стили для маркеров без выпускников */
+.city-marker-container .marker-dot[style*="95a5a6"] + .city-name-on-map {
+    color: #666 !important;
+    background: rgba(248, 249, 250, 0.9) !important;
+    border: 1px solid rgba(206, 212, 218, 0.7) !important;
+}
+
+/* ========== ДОПОЛНИТЕЛЬНЫЙ КОД ДЛЯ CSS ========== */
+
+/* Классы для управления видимостью при зуме */
+@media (max-width: 768px) {
+    /* Скрывать очень длинные названия при сильном зуме */
+    .city-name-on-map.hide-on-zoom {
+        opacity: 0.7;
+    }
+    
+    /* Альтернатива - показывать только первую букву */
+    .city-name-on-map.compact-mode {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px !important;
+        font-weight: bold;
+        color: #1a237e !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 2px solid currentColor !important;
+        padding: 0 !important;
+        text-shadow: none !important;
+    }
+}
+
+/* Анимация изменения размера */
+.city-name-on-map {
+    transition: font-size 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+}
+
+/* Улучшение для touch-устройств */
+@media (hover: none) and (pointer: coarse) {
+    .city-marker-container {
+        min-width: 44px; /* Минимальный размер для касания */
+        min-height: 44px;
+    }
+    
+    .marker-dot {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .city-name-on-map {
+        /* Делаем названия более заметными на touch */
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 2px solid rgba(26, 35, 126, 0.2) !important;
+    }
+}
