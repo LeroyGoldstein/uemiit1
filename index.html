@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>УЭМИИТ на карте городов России</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Форма входа -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <h2><i class="fas fa-lock"></i> Доступ к карте</h2>
+                <p>Введите пароль для просмотра карты</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="password" 
+                           id="passwordInput" 
+                           placeholder="Введите пароль"
+                           required
+                           autocomplete="current-password">
+                    <button type="button" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+                
+                <div class="login-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Пароль: uemiit2024</span>
+                </div>
+                
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для фото -->
+    <div class="photo-modal" id="photoModal">
+    <div class="modal-overlay" onclick="closePhotoModal()"></div>
+    <div class="modal-content">
+        <button class="close-modal" onclick="closePhotoModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalPhoto" src="" alt="Фото выпускника">
+        <div class="photo-info" id="modalPhotoInfo"></div>
+        </div>
+    </div>
+<div class="main-content" id="mainContent" style="display: none;">
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-map-marked-alt"></i> УЭМИИТ на карте городов России</h1>
+            <p class="subtitle">Выпускники и сотрудники УЭМИИТ в городах России</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Левая панель с картой -->
+        <section class="map-section">
+            <div class="map-container">
+                <!-- Фоновая карта -->
+                <div class="map-background">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Russia_edcp_location_map.svg" 
+                         alt="Карта России" 
+                         class="map-image"
+                         id="mapImage">
+                </div>
+                
+                <!-- Интерактивные точки на карте -->
+                <div class="interactive-overlay" id="cityMarkersContainer">
+                    <!-- Маркеры будут добавлены через JS -->
+                </div>
+                
+                <!-- Всплывающий список людей -->
+                <div class="people-tooltip" id="peopleTooltip">
+                    <div class="tooltip-header">
+                        <h3 id="tooltipCityName">Город</h3>
+                        <button class="close-tooltip" id="closeTooltip">&times;</button>
+                    </div>
+                    <div class="people-list" id="peopleList">
+                        <!-- Список людей будет вставлен сюда -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Правая панель со списком городов -->
+        <aside class="cities-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-city"></i> Города</h2>
+                <div class="stats">
+                    <span class="total-people" id="totalPeople">Выпускников: 0</span>
+                    <span class="total-cities" id="totalCities">Городов: 0</span>
+                </div>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Поиск по имени или городу...">
+                <i class="fas fa-search"></i>
+            </div>
+            
+            <div class="cities-list" id="citiesList">
+                <!-- Список городов будет вставлен сюда -->
+            </div>
+            
+            <div class="legend">
+                <h4><i class="fas fa-info-circle"></i> Легенда</h4>
+                <div class="legend-item">
+                    <div class="legend-dot"></div>
+                    <span>Город с выпускниками УЭМИИТ</span>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>Проект "УЭМИИТ на карте городов России" • Все данные являются демонстрационными</p>
+        </div>
+    </footer>
+</div>
+
+    <!-- Подключаем наши скрипты -->
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
