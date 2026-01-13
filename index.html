@@ -3,62 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>УЭМИИТ на карте городов России</title>
+    <title>Выпускники УЭМИИТ 1988 на карте городов России</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <!-- Форма входа -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-container">
-            <div class="login-header">
-                <h2><i class="fas fa-lock"></i> Доступ к карте</h2>
-                <p>Введите пароль для просмотра карты</p>
+<div class="login-screen" id="loginScreen">
+    <div class="login-container">
+        <div class="login-header">
+            <h2><i class="fas fa-lock"></i> Доступ к карте</h2>
+            <p>Введите пароль для просмотра карты</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="password" 
+                       id="passwordInput" 
+                       placeholder="Введите пароль"
+                       required
+                       autocomplete="current-password">
+                <button type="button" id="togglePassword">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
             
-            <form id="loginForm">
-                <div class="input-group">
-                    <input type="password" 
-                           id="passwordInput" 
-                           placeholder="Введите пароль"
-                           required
-                           autocomplete="current-password">
-                    <button type="button" id="togglePassword">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Войти
-                </button>
-                
-                <div class="login-hint">
-                    <i class="fas fa-info-circle"></i>
-                    <span></span>
-                </div>
-                
-                <div id="loginError" class="error-message"></div>
-            </form>
-        </div>
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+            
+            <div class="login-hint">
+                <i class="fas fa-info-circle"></i>
+                <span></span>
+            </div>
+            
+            <div id="loginError" class="error-message"></div>
+        </form>
     </div>
+</div>
 
-    <!-- Модальное окно для фото -->
-    <div class="photo-modal" id="photoModal">
+<!-- Модальное окно для фото на весь экран -->
+<div class="photo-modal" id="photoModal">
     <div class="modal-overlay" onclick="closePhotoModal()"></div>
     <div class="modal-content">
+        <!-- Кнопка закрытия -->
         <button class="close-modal" onclick="closePhotoModal()">
             <i class="fas fa-times"></i>
         </button>
+        
+        <!-- Кнопка "назад" -->
+        <button class="nav-btn prev-btn" id="prevPhoto" onclick="showPrevPhoto()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <!-- Основное фото -->
         <img id="modalPhoto" src="" alt="Фото выпускника">
+        
+        <!-- Кнопка "вперед" -->
+        <button class="nav-btn next-btn" id="nextPhoto" onclick="showNextPhoto()">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Счетчик фото -->
+        <div class="photo-counter" id="photoCounter"></div>
+        
+        <!-- Информация о человеке -->
         <div class="photo-info" id="modalPhotoInfo"></div>
-        </div>
     </div>
+</div>
+
 <div class="main-content" id="mainContent" style="display: none;">
     <header>
         <div class="header-content">
             <h1><i class="fas fa-map-marked-alt"></i> УЭМИИТ на карте городов России</h1>
-            <p class="subtitle">Выпускники УЭМИИТ в городах России</p>
+            <p class="subtitle">Выпускники УЭМИИТ 1988г в городах России</p>
         </div>
     </header>
 
@@ -68,7 +87,7 @@
             <div class="map-container">
                 <!-- Фоновая карта -->
                 <div class="map-background">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Russia_edcp_location_map.svg" 
+                    <img src="foto/map.svg" 
                          alt="Карта России" 
                          class="map-image"
                          id="mapImage">
@@ -128,8 +147,8 @@
     </footer>
 </div>
 
-    <!-- Подключаем наши скрипты -->
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+<!-- Подключаем наши скрипты -->
+<script src="data.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

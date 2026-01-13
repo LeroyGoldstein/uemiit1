@@ -1,3 +1,4 @@
+
 /* Сброс и базовые стили */
 * {
     margin: 0;
@@ -20,6 +21,7 @@ header {
     padding: 1.5rem 0;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 .header-content h1 {
@@ -82,16 +84,19 @@ header {
     pointer-events: none;
 }
 
-.city-marker {
+.city-marker-container {
     position: absolute;
     transform: translate(-50%, -50%);
     pointer-events: all;
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.city-marker:hover {
+.city-marker-container:hover {
     transform: translate(-50%, -50%) scale(1.2);
     z-index: 100;
 }
@@ -103,27 +108,32 @@ header {
     border-radius: 50%;
     border: 3px solid white;
     box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
 }
 
-.marker-label {
+/* Названия городов на карте */
+.city-name-on-map {
     position: absolute;
-    top: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 13px;
+    color: #1a237e;
     font-weight: 600;
+    font-size: 13px;
     white-space: nowrap;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    opacity: 0;
-    transition: opacity 0.3s ease;
     pointer-events: none;
-}
-
-.city-marker:hover .marker-label {
-    opacity: 1;
+    z-index: 5;
+    transition: all 0.2s ease;
+    text-shadow: 
+        1px 1px 2px rgba(255,255,255,0.9),
+        -1px 1px 2px rgba(255,255,255,0.9),
+        1px -1px 2px rgba(255,255,255,0.9),
+        -1px -1px 2px rgba(255,255,255,0.9);
+    background: none;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    top: -25px; /* Размещаем над точкой */
+    left: 0;
+    text-align: center;
+    min-width: 80px;
 }
 
 /* Всплывающий список людей */
@@ -134,7 +144,7 @@ header {
     background: white;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    width: 350px;
+    width: 380px;
     max-height: 600px;
     display: none;
     z-index: 1000;
@@ -189,6 +199,7 @@ header {
     overflow-y: auto;
 }
 
+/* Карточка человека с двумя фото */
 .person-card {
     display: flex;
     align-items: center;
@@ -205,19 +216,36 @@ header {
     transform: translateY(-2px);
 }
 
+/* Контейнер для двух фото */
+.person-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 70px;
+}
+
 .person-photo {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
+    border-radius: 10px;
     object-fit: cover;
     border: 3px solid white;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    cursor: pointer;
     transition: transform 0.3s ease;
+    cursor: pointer;
 }
 
 .person-photo:hover {
     transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.main-photo {
+    border-color: #1a237e;
+}
+
+.second-photo {
+    border-color: #e74c3c;
 }
 
 .person-info {
@@ -228,11 +256,19 @@ header {
     font-weight: 600;
     color: #2c3e50;
     margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.person-position {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 3px;
 }
 
 .person-company {
     color: #666;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 /* Панель городов */
@@ -386,7 +422,8 @@ footer {
     margin-top: 2rem;
 }
 
-/* Модальное окно для фото */
+/* ========== МОДАЛЬНОЕ ОКНО ДЛЯ ФОТО ========== */
+
 .photo-modal {
     display: none;
     position: fixed;
@@ -394,229 +431,144 @@ footer {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 2000;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
     align-items: center;
     justify-content: center;
+    animation: fadeIn 0.3s ease;
 }
 
 .photo-modal.active {
     display: flex;
 }
 
-.photo-modal .modal-content {
-    max-width: 90%;
-    max-height: 90%;
-    position: relative;
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 1;
 }
 
-.photo-modal img {
+.modal-content {
+    position: relative;
+    max-width: 95%;
+    max-height: 95vh;
+    background: transparent;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content img {
     max-width: 100%;
-    max-height: 80vh;
+    max-height: 85vh;
+    object-fit: contain;
     border-radius: 10px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.4s ease;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .close-modal {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.9);
     border: none;
-    color: white;
+    color: #2c3e50;
     font-size: 32px;
     cursor: pointer;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.3s;
-    z-index: 2001;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 3;
 }
 
 .close-modal:hover {
-    background: rgba(255,255,255,0.3);
+    background: white;
+    transform: rotate(90deg);
+    color: #e74c3c;
+}
+
+/* Кнопки навигации */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #2c3e50;
+    font-size: 24px;
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 3;
+    opacity: 0.8;
+}
+
+.nav-btn:hover {
+    background: white;
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.prev-btn {
+    left: 20px;
+}
+
+.next-btn {
+    right: 20px;
+}
+
+/* Счетчик фото */
+.photo-counter {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    z-index: 3;
+    display: none;
+    transition: opacity 0.3s ease;
 }
 
 .photo-info {
     color: white;
     text-align: center;
     margin-top: 20px;
-    font-size: 1.2rem;
-}
-
-/* Адаптивность */
-@media (max-width: 1200px) {
-    .container {
-        flex-direction: column;
-        max-width: 800px;
-    }
-    
-    .map-container {
-        height: 500px;
-    }
-    
-    .people-tooltip {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        max-width: 400px;
-        max-height: 80vh;
-    }
-}
-
-@media (max-width: 768px) {
-    .header-content h1 {
-        font-size: 1.5rem;
-    }
-    
-    .container {
-        padding: 0 10px;
-        margin: 1rem auto;
-    }
-    
-    .map-container {
-        height: 400px;
-    }
-    
-    .cities-panel {
-        padding: 15px;
-    }
-}
-
-/* Стили для скроллбара */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* Добавьте эти стили в существующий CSS файл */
-
-/* Стили для названий городов на карте */
-.city-name-on-map {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    color: #1a237e;
+    font-size: 1.3rem;
     font-weight: 600;
-    font-size: 14px;
-    text-shadow: 
-        1px 1px 0 white,
-        -1px 1px 0 white,
-        1px -1px 0 white,
-        -1px -1px 0 white,
-        0 1px 0 white,
-        0 -1px 0 white,
-        1px 0 0 white,
-        -1px 0 0 white;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 5;
-    transition: all 0.3s ease;
-}
-
-/* Для адаптивности */
-@media (max-width: 768px) {
-    .city-name-on-map {
-        font-size: 12px;
-    }
-}
-
-/* Обновляем стили для маркеров */
-.marker-dot {
-    width: 20px;
-    height: 20px;
-    background: #e74c3c;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    position: relative;
-    z-index: 10;
-}
-
-/* Обновляем контейнер маркеров */
-.city-marker-container {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: all;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.city-marker-container:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-    z-index: 100;
-}
-
-/* Позиционируем названия относительно точек */
-.city-name-above {
-    margin-bottom: 25px; /* Над точкой */
-}
-
-.city-name-below {
-    margin-top: 25px; /* Под точкой */
-}
-
-.city-name-left {
-    margin-right: 25px; /* Слева от точки */
-    transform: translate(50%, -50%);
-}
-
-.city-name-right {
-    margin-left: 25px; /* Справа от точки */
-    transform: translate(-50%, -50%);
-}
-
-/* Фон для названий городов (опционально) */
-.city-name-on-map {
-    background: rgba(255, 255, 255, 0.85);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* Для маленьких экранов */
-@media (max-width: 768px) {
-    .city-name-on-map {
-        font-size: 11px;
-        padding: 2px 5px;
-        background: rgba(255, 255, 255, 0.9);
-    }
-    
-    .city-marker-container:hover {
-        transform: translate(-50%, -50%) scale(1.05);
-    }
-}
-
-/* Анимация при наведении */
-.city-marker-container {
-    transition: transform 0.2s ease, z-index 0.2s ease;
-}
-
-.city-name-on-map {
-    transition: color 0.2s ease, font-weight 0.2s ease;
+    max-width: 80%;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    z-index: 3;
 }
 
 /* Стили для экрана входа */
@@ -770,80 +722,6 @@ footer {
     }
 }
 
-const logoutBtnCSS = `
-.logout-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.logout-btn:hover {
-    background: rgba(255,255,255,0.2);
-}
-`;
-
-/* Стили для названий городов на карте (БЕЗ ФОНА) */
-.city-name-on-map {
-    position: absolute;
-    left: 25px; /* Справа от маркера */
-    top: 50%;
-    transform: translateY(-50%);
-    color: #1a237e;
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 5;
-    transition: all 0.2s ease;
-    text-shadow: 
-        1px 1px 2px rgba(255,255,255,0.9),
-        -1px 1px 2px rgba(255,255,255,0.9),
-        1px -1px 2px rgba(255,255,255,0.9),
-        -1px -1px 2px rgba(255,255,255,0.9);
-    background: none !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-
-.city-marker-container {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    z-index: 10;
-    transition: all 0.3s ease;
-}
-
-.city-marker-container:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-    z-index: 1000;
-}
-
-.marker-dot {
-    width: 20px;
-    height: 20px;
-    background: #e74c3c;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    transition: transform 0.3s ease;
-}
-
 /* Сообщения при отсутствии данных */
 .no-cities, .no-people, .no-results {
     text-align: center;
@@ -874,840 +752,146 @@ const logoutBtnCSS = `
     background: rgba(255,255,255,0.2);
 }
 
-/* Стили для кнопки администратора */
-.admin-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.admin-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-/* Панель администратора */
-.admin-panel {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 400px;
-    height: 100vh;
-    background: white;
-    box-shadow: -5px 0 30px rgba(0,0,0,0.2);
-    z-index: 9998;
-    display: flex;
-    flex-direction: column;
-    transition: right 0.4s ease;
-}
-
-.admin-panel.active {
-    right: 0;
-}
-
-.admin-header {
-    background: linear-gradient(135deg, #2c3e50, #34495e);
-    color: white;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 3px solid #3498db;
-}
-
-.admin-header h3 {
-    margin: 0;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.close-admin {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    font-size: 28px;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.close-admin:hover {
-    background: rgba(255,255,255,0.3);
-    transform: rotate(90deg);
-}
-
-.admin-tabs {
-    display: flex;
-    background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.admin-tab {
-    flex: 1;
-    padding: 15px;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    font-weight: 600;
-    color: #6c757d;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.admin-tab:hover {
-    color: #3498db;
-    background: #e9ecef;
-}
-
-.admin-tab.active {
-    color: #3498db;
-    border-bottom-color: #3498db;
-    background: white;
-}
-
-.admin-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.tab-content h4 {
-    color: #2c3e50;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Формы */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.form-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.form-row .form-group {
-    flex: 1;
-    margin-bottom: 0;
-}
-
-.form-group small {
-    display: block;
-    margin-top: 5px;
-    color: #6c757d;
-    font-size: 0.85rem;
-}
-
-/* Превью карты */
-.map-preview {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 10px 0;
-}
-
-.preview-map {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.preview-dot {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: #e74c3c;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transform: translate(-50%, -50%);
-    cursor: move;
-}
-
-/* Превью фото */
-.photo-preview-small {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-top: 10px;
-    border: 3px solid #3498db;
-}
-
-.photo-preview-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Кнопки */
-.submit-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
-}
-
-/* Просмотр данных */
-.data-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.export-btn,
-.import-btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.export-btn {
-    background: #3498db;
-    color: white;
-}
-
-.import-btn {
-    background: #9b59b6;
-    color: white;
-}
-
-.export-btn:hover {
-    background: #2980b9;
-    transform: translateY(-2px);
-}
-
-.import-btn:hover {
-    background: #8e44ad;
-    transform: translateY(-2px);
-}
-
-.data-stats {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.stat-item {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    border: 2px solid #e9ecef;
-}
-
-.stat-label {
-    display: block;
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-
-.stat-value {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #2c3e50;
-}
-
-.data-preview {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-#jsonPreview {
-    background: #2c3e50;
-    color: #ecf0f1;
-    padding: 15px;
-    border-radius: 5px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    white-space: pre-wrap;
-    word-break: break-all;
-}
-
 /* Адаптивность */
-@media (max-width: 768px) {
-    .admin-panel {
-        width: 100%;
-        right: -100%;
-    }
-    
-    .form-row {
+@media (max-width: 1200px) {
+    .container {
         flex-direction: column;
-        gap: 15px;
+        max-width: 800px;
     }
     
-    .admin-btn {
-        padding: 8px 16px;
-        font-size: 0.8rem;
-    }
-}
-
-/* Стиль для кнопки импорта Excel */
-#excelImportBtn {
-    position: absolute;
-    top: 20px;
-    right: 150px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-    z-index: 100;
-}
-
-#excelImportBtn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-/* Адаптивность для кнопок в header */
-@media (max-width: 768px) {
-    #excelImportBtn {
-        right: 120px;
-        padding: 8px 16px;
-        font-size: 0.8rem;
+    .map-container {
+        height: 500px;
     }
     
-    .admin-btn {
-        right: 20px;
+    .people-tooltip {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 400px;
+        max-height: 80vh;
     }
 }
 
-/* Стили для меню импорта Excel */
-#excelImportMenu {
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    display: none; /* Скрыто по умолчанию */
-    flex-direction: column;
-    gap: 10px;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 1000;
-    min-width: 220px;
-    border: 2px solid #1a237e;
-}
-
-#excelImportMenu.show {
-    display: flex;
-}
-
-#excelImportMenu button {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s;
-    color: white;
-    font-size: 0.9rem;
-}
-
-#excelImportMenu button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-#excelImportAddBtn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-}
-
-#excelImportReplaceBtn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-
-#clearDataBtn {
-    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-}
-
-/* Адаптивность для меню */
 @media (max-width: 768px) {
-    #excelImportMenu {
-        top: 60px;
-        right: 10px;
-        left: 10px;
+    .header-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .container {
+        padding: 0 10px;
+        margin: 1rem auto;
+    }
+    
+    .map-container {
+        height: 400px;
+    }
+    
+    .cities-panel {
+        padding: 15px;
+    }
+    
+    /* Адаптивность для двух фото */
+    .person-photos {
+        flex-direction: row;
         min-width: auto;
+        gap: 10px;
     }
     
-    #adminBtn {
-        right: 10px;
-        padding: 8px 16px;
-        font-size: 0.8rem;
+    .person-photo {
+        width: 50px;
+        height: 50px;
     }
-}
-
-/* Индикатор загрузки */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.loading-overlay.active {
-    display: flex;
-}
-
-.loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #1a237e;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-    color: white;
-    margin-top: 20px;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-/* Стили для меню управления данными */
-#dataManagementMenu {
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 1000;
-    min-width: 220px;
-    border: 2px solid #1a237e;
-}
-
-#dataManagementMenu.show {
-    display: flex;
-}
-
-.data-management-btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s;
-    color: white;
-    font-size: 0.9rem;
-}
-
-.data-management-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* Адаптивность для меню */
-@media (max-width: 768px) {
-    #dataManagementMenu {
-        top: 60px;
-        right: 10px;
+    
+    .person-card {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    /* Адаптивность модального окна */
+    .nav-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .prev-btn {
         left: 10px;
-        min-width: auto;
     }
     
-    #adminBtn {
+    .next-btn {
         right: 10px;
-        padding: 8px 16px;
-        font-size: 0.8rem;
-    }
-}
-
-/* Стили для названий городов на карте (БЕЗ ФОНА) */
-.city-name-on-map {
-    position: absolute;
-    left: 45px; /* Справа от маркера */
-    top: 50%;
-    transform: translateY(-50%);
-    color: #1a237e;
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 5;
-    transition: all 0.2s ease;
-    text-shadow: 
-        1px 1px 2px rgba(255,255,255,0.9),
-        -1px 1px 2px rgba(255,255,255,0.9),
-        1px -1px 2px rgba(255,255,255,0.9),
-        -1px -1px 2px rgba(255,255,255,0.9);
-    background: none !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* Позиции для названий */
-.city-name-on-map.top {
-    bottom: 25px;
-    top: auto;
-}
-
-.city-name-on-map.bottom {
-    bottom: auto;
-    top: 25px;
-}
-
-.city-name-on-map.left {
-    transform: translateX(-100%);
-    left: 0;
-    right: auto;
-    bottom: 0;
-    top: auto;
-    text-align: right;
-}
-
-.city-name-on-map.right {
-    transform: translateX(0);
-    left: 25px;
-    right: auto;
-    bottom: 0;
-    top: auto;
-    text-align: left;
-}
-
-/* Для очень длинных названий */
-.city-name-on-map.long {
-    font-size: 11px;
-    padding: 3px 8px;
-    max-width: 120px;
-}
-
-/* При наведении на маркер */
-.city-marker-container:hover .city-name-on-map {
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
-    transform: translateX(-50%) scale(1.05);
-}
-
-/* Адаптивность для названий */
-@media (max-width: 768px) {
-    .city-name-on-map {
-        font-size: 11px;
-        padding: 3px 7px;
-        max-width: 100px;
     }
     
-    .city-name-on-map.long {
-        font-size: 10px;
-        padding: 2px 6px;
-        max-width: 90px;
+    .close-modal {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+        top: 15px;
+        right: 15px;
+    }
+    
+    .photo-info {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+    
+    .photo-counter {
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
     }
 }
 
-/* Для маркеров без людей */
-.city-marker-container .marker-dot[style*="95a5a6"] + .city-name-on-map {
-    color: #666;
-    background: rgba(248, 249, 250, 0.92);
-    border: 1px solid rgba(206, 212, 218, 0.5);
-}
-
-/* ========== АДАПТИВНЫЕ НАЗВАНИЯ ГОРОДОВ ========== */
-
-.city-name-on-map.adaptive-text {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: font-size, transform;
-    pointer-events: auto !important; /* Чтобы работало на мобильных */
-}
-
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .city-name-on-map {
-        font-size: 12px !important; /* Базовый размер на мобильных */
-        font-weight: 600;
-        text-shadow: 
-            2px 2px 3px rgba(255,255,255,0.9),
-            -2px 2px 3px rgba(255,255,255,0.9),
-            2px -2px 3px rgba(255,255,255,0.9),
-            -2px -2px 3px rgba(255,255,255,0.9),
-            0 2px 3px rgba(255,255,255,0.9),
-            0 -2px 3px rgba(255,255,255,0.9),
-            2px 0 3px rgba(255,255,255,0.9),
-            -2px 0 3px rgba(255,255,255,0.9) !important;
-        background: rgba(255, 255, 255, 0.85) !important;
-        padding: 3px 6px !important;
-        border-radius: 4px !important;
-        border: 1px solid rgba(0, 0, 0, 0.1) !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-        max-width: 120px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    /* Дополнительная адаптация при увеличении */
-    @media screen and (min-resolution: 2dppx) {
-        .city-name-on-map {
-            font-size: 11px !important;
-            padding: 2px 4px !important;
-        }
-    }
-    
-    /* При зуме */
-    .city-name-on-map.zoom-small {
-        font-size: 10px !important;
-        padding: 1px 3px !important;
-    }
-    
-    .city-name-on-map.zoom-very-small {
-        font-size: 8px !important;
-        padding: 1px 2px !important;
-        max-width: 100px;
-    }
-    
-    /* Длинные названия */
-    .city-name-on-map.long-name {
-        font-size: 10px !important;
-        max-width: 100px;
-    }
-    
-    .city-name-on-map.long-name.zoom-small {
-        font-size: 9px !important;
-    }
-    
-    .city-name-on-map.long-name.zoom-very-small {
-        font-size: 7px !important;
-        max-width: 80px;
-    }
-    
-    /* Адаптивное позиционирование при зуме */
-    .city-name-on-map.right-aligned {
-        left: 30px !important;
-        text-align: left !important;
-    }
-    
-    .city-name-on-map.left-aligned {
-        right: 30px !important;
-        text-align: right !important;
-    }
-    
-    .city-name-on-map.top-aligned {
-        bottom: 30px !important;
-        text-align: center !important;
-    }
-    
-    .city-name-on-map.bottom-aligned {
-        top: 30px !important;
-        text-align: center !important;
-    }
-}
-
-/* Для очень маленьких экранов */
 @media (max-width: 480px) {
-    .city-name-on-map {
-        font-size: 11px !important;
-        max-width: 100px;
+    .person-photo {
+        width: 45px;
+        height: 45px;
     }
     
-    .city-name-on-map.long-name {
-        font-size: 9px !important;
-        max-width: 90px;
-    }
-}
-
-/* Для планшетов */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .city-name-on-map {
-        font-size: 12px !important;
-    }
-}
-
-/* Предотвращение слишком мелкого текста */
-.city-name-on-map {
-    min-font-size: 8px !important;
-}
-
-/* Улучшение читаемости при наведении */
-.city-marker-container:hover .city-name-on-map {
-    background: rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
-    z-index: 1001 !important;
-    transform: scale(1.05) !important;
-    transition: all 0.2s ease !important;
-}
-
-/* Стили для маркеров без выпускников */
-.city-marker-container .marker-dot[style*="95a5a6"] + .city-name-on-map {
-    color: #666 !important;
-    background: rgba(248, 249, 250, 0.9) !important;
-    border: 1px solid rgba(206, 212, 218, 0.7) !important;
-}
-
-/* ========== ДОПОЛНИТЕЛЬНЫЙ КОД ДЛЯ CSS ========== */
-
-/* Классы для управления видимостью при зуме */
-@media (max-width: 768px) {
-    /* Скрывать очень длинные названия при сильном зуме */
-    .city-name-on-map.hide-on-zoom {
-        opacity: 0.7;
+    .nav-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
     }
     
-    /* Альтернатива - показывать только первую букву */
-    .city-name-on-map.compact-mode {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px !important;
-        font-weight: bold;
-        color: #1a237e !important;
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: 2px solid currentColor !important;
-        padding: 0 !important;
-        text-shadow: none !important;
+    .prev-btn {
+        left: 5px;
+    }
+    
+    .next-btn {
+        right: 5px;
+    }
+    
+    .close-modal {
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+    }
+    
+    .photo-info {
+        font-size: 1rem;
+        margin-top: 15px;
     }
 }
 
-/* Анимация изменения размера */
-.city-name-on-map {
-    transition: font-size 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+/* Стили для скроллбара */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-/* Улучшение для touch-устройств */
-@media (hover: none) and (pointer: coarse) {
-    .city-marker-container {
-        min-width: 44px; /* Минимальный размер для касания */
-        min-height: 44px;
-    }
-    
-    .marker-dot {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .city-name-on-map {
-        /* Делаем названия более заметными на touch */
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: 2px solid rgba(26, 35, 126, 0.2) !important;
-    }
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }

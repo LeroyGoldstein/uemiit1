@@ -7,17 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Страница загружена');
     
     if (checkAuth()) {
-        // Если авторизован - показываем карту
         showMainContent();
         setTimeout(initMainApplication, 100);
     } else {
-        // Если нет - показываем форму входа
         showLoginScreen();
         setupLoginListeners();
     }
 });
 
-// Проверка авторизации
 function checkAuth() {
     const authData = localStorage.getItem(STORAGE_KEY);
     if (!authData) return false;
@@ -30,16 +27,14 @@ function checkAuth() {
     }
 }
 
-// Сохранение авторизации
 function saveAuth() {
     const authData = {
         token: btoa(PASSWORD),
-        expires: Date.now() + (8 * 60 * 60 * 1000) // 8 часов
+        expires: Date.now() + (8 * 60 * 60 * 1000)
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
 }
 
-// Показать/скрыть экраны
 function showLoginScreen() {
     const loginScreen = document.getElementById('loginScreen');
     const mainContent = document.getElementById('mainContent');
@@ -56,13 +51,11 @@ function showMainContent() {
     if (mainContent) mainContent.style.display = 'block';
 }
 
-// Обработчики формы входа
 function setupLoginListeners() {
     const loginForm = document.getElementById('loginForm');
     const passwordInput = document.getElementById('passwordInput');
     const togglePassword = document.getElementById('togglePassword');
     
-    // Показать/скрыть пароль
     if (togglePassword) {
         togglePassword.addEventListener('click', function() {
             const type = passwordInput.type === 'password' ? 'text' : 'password';
@@ -73,7 +66,6 @@ function setupLoginListeners() {
         });
     }
     
-    // Отправка формы
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -89,29 +81,170 @@ function setupLoginListeners() {
     });
 }
 
+// ========== ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ФОТО ==========
+
+// Открыть модальное окно с фото
+function openPhotoModal(photoUrl, personName, cityId = null, personId = null, photoIndex = 0) {
+    const modal = document.getElementById('photoModal');
+    const modalPhoto = document.getElementById('modalPhoto');
+    const modalInfo = document.getElementById('modalPhotoInfo');
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
+    
+    if (!modal || !modalPhoto || !modalInfo) return;
+    
+    // Сохраняем информацию для навигации
+    if (cityId && personId) {
+        const allPhotos = getAllPersonPhotos(cityId, personId);
+        if (allPhotos.length > 0) {
+            currentPersonPhotos = allPhotos;
+            currentPhotoIndex = photoIndex;
+            currentPersonName = personName;
+            
+            // Показываем/скрываем кнопки навигации
+            if (prevBtn) prevBtn.style.display = allPhotos.length > 1 ? 'flex' : 'none';
+            if (nextBtn) nextBtn.style.display = allPhotos.length > 1 ? 'flex' : 'none';
+            
+            // Обновляем счетчик
+            updatePhotoCounter();
+        }
+    } else {
+        // Если нет информации о городе/человеке, просто показываем одно фото
+        currentPersonPhotos = [photoUrl];
+        currentPhotoIndex = 0;
+        currentPersonName = personName;
+        
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        updatePhotoCounter();
+    }
+    
+    modalPhoto.src = currentPersonPhotos[currentPhotoIndex] || photoUrl;
+    modalPhoto.alt = currentPersonName;
+    modalInfo.textContent = currentPersonName;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Добавляем обработчики для навигации
+    document.addEventListener('keydown', handlePhotoNavigation);
+}
+
+// Обновить счетчик фото (функция должна быть объявлена)
+function updatePhotoCounter() {
+    const counter = document.getElementById('photoCounter');
+    if (counter && currentPersonPhotos.length > 1) {
+        counter.textContent = `${currentPhotoIndex + 1} / ${currentPersonPhotos.length}`;
+        counter.style.display = 'block';
+    } else if (counter) {
+        counter.style.display = 'none';
+    }
+}
+
+// Показать предыдущее фото
+function showPrevPhoto() {
+    if (currentPersonPhotos.length <= 1) return;
+    
+    currentPhotoIndex = (currentPhotoIndex - 1 + currentPersonPhotos.length) % currentPersonPhotos.length;
+    const modalPhoto = document.getElementById('modalPhoto');
+    if (modalPhoto) {
+        modalPhoto.style.opacity = '0';
+        setTimeout(() => {
+            modalPhoto.src = currentPersonPhotos[currentPhotoIndex];
+            updatePhotoCounter();
+            setTimeout(() => {
+                modalPhoto.style.opacity = '1';
+            }, 50);
+        }, 200);
+    }
+}
+
+// Показать следующее фото
+function showNextPhoto() {
+    if (currentPersonPhotos.length <= 1) return;
+    
+    currentPhotoIndex = (currentPhotoIndex + 1) % currentPersonPhotos.length;
+    const modalPhoto = document.getElementById('modalPhoto');
+    if (modalPhoto) {
+        modalPhoto.style.opacity = '0';
+        setTimeout(() => {
+            modalPhoto.src = currentPersonPhotos[currentPhotoIndex];
+            updatePhotoCounter();
+            setTimeout(() => {
+                modalPhoto.style.opacity = '1';
+            }, 50);
+        }, 200);
+    }
+}
+
+// Обработчик навигации по фото
+function handlePhotoNavigation(event) {
+    if (!document.getElementById('photoModal').classList.contains('active')) return;
+    
+    switch(event.key) {
+        case 'ArrowLeft':
+            event.preventDefault();
+            showPrevPhoto();
+            break;
+        case 'ArrowRight':
+            event.preventDefault();
+            showNextPhoto();
+            break;
+        case 'Escape':
+            closePhotoModal();
+            break;
+    }
+}
+
+// Закрыть модальное окно с фото
+function closePhotoModal() {
+    const modal = document.getElementById('photoModal');
+    
+    if (!modal) return;
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Сбрасываем состояние
+    currentPersonPhotos = [];
+    currentPhotoIndex = 0;
+    currentPersonName = "";
+    
+    // Удаляем обработчики
+    document.removeEventListener('keydown', handlePhotoNavigation);
+    
+    // Скрываем кнопки навигации
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    
+    // Скрываем счетчик
+    const counter = document.getElementById('photoCounter');
+    if (counter) counter.style.display = 'none';
+}
+
+// Делаем функции глобальными
+window.openPhotoModal = openPhotoModal;
+window.closePhotoModal = closePhotoModal;
+window.showPrevPhoto = showPrevPhoto;
+window.showNextPhoto = showNextPhoto;
+
 // ========== ОСНОВНОЕ ПРИЛОЖЕНИЕ ==========
 let currentSelectedCity = null;
-let tooltipSource = 'map'; // 'map' или 'list' - откуда открыли tooltip
+let tooltipSource = 'map';
 
 function initMainApplication() {
     console.log('Инициализация основного приложения');
     
-    // 1. Загружаем данные
     updateStatistics();
-    
-    // 2. Создаем маркеры на карте
     createCityMarkers();
-    
-    // 3. Загружаем список городов
     loadCitiesList();
-    
-    // 4. Настраиваем обработчики
     setupApplicationListeners();
     
     console.log('Приложение запущено');
 }
 
-// 1. Обновить статистику
 function updateStatistics() {
     const stats = getStatistics();
     const totalPeopleElem = document.getElementById('totalPeople');
@@ -126,7 +259,6 @@ function updateStatistics() {
     }
 }
 
-// 2. Создать маркеры на карте
 function createCityMarkers() {
     const container = document.getElementById('cityMarkersContainer');
     if (!container) {
@@ -136,45 +268,36 @@ function createCityMarkers() {
     
     container.innerHTML = '';
     
-    // Берем ВСЕ города
     const cities = citiesData.cities;
-    
-    // Создаем массив маркеров
     const markers = [];
     
     cities.forEach(city => {
-        // Создаем контейнер
         const marker = document.createElement('div');
         marker.className = 'city-marker-container';
         marker.style.left = city.coordinates.left;
         marker.style.top = city.coordinates.top;
         marker.setAttribute('data-city', city.id);
         
-        // Название города - БЕЗ ФОНА
         const name = document.createElement('div');
         name.className = 'city-name-on-map';
         name.textContent = city.name;
         name.dataset.cityId = city.id;
         
-        // Точка города (разный цвет если есть люди)
         const dot = document.createElement('div');
         dot.className = 'marker-dot';
         
-        // Подсчитываем людей в городе
         const peopleCount = getPeopleCount(city.id);
         if (peopleCount > 0) {
-            dot.style.background = '#e74c3c'; // Красный - есть люди
+            dot.style.background = '#e74c3c';
             dot.title = `${peopleCount} выпускник(ов)`;
         } else {
-            dot.style.background = '#95a5a6'; // Серый - нет людей
+            dot.style.background = '#95a5a6';
             dot.title = 'Нет выпускников';
         }
         
-        // Добавляем элементы
         marker.appendChild(name);
         marker.appendChild(dot);
         
-        // Сохраняем данные маркера
         markers.push({
             element: marker,
             nameElement: name,
@@ -187,7 +310,7 @@ function createCityMarkers() {
         // Обработчики событий
         marker.addEventListener('click', function(e) {
             e.stopPropagation();
-            showCityPeople(city.id, 'map'); // Источник - карта
+            showCityPeople(city.id, 'map');
         });
         
         marker.addEventListener('mouseenter', function() {
@@ -209,33 +332,22 @@ function createCityMarkers() {
         container.appendChild(marker);
     });
     
-    // Позиционируем названия с умным алгоритмом
     setTimeout(() => positionCityLabelsSmart(markers), 100);
 }
 
-// Умное позиционирование названий (без перекрытий, максимум 25px)
 function positionCityLabelsSmart(markers) {
-    // Максимальное расстояние от маркера
     const MAX_DISTANCE = 25;
-    
-    // Рассчитываем реальные позиции на экране
     const container = document.getElementById('cityMarkersContainer');
     const containerRect = container.getBoundingClientRect();
-    
-    // Создаем массив для хранения позиций названий
     const labelPositions = [];
     
-    // Сортируем маркеры по Y координате (сверху вниз)
     markers.sort((a, b) => a.y - b.y);
     
     markers.forEach(marker => {
         const name = marker.nameElement;
-        
-        // Рассчитываем позицию маркера в пикселях
         const markerX = (marker.x / 100) * containerRect.width;
         const markerY = (marker.y / 100) * containerRect.height;
         
-        // Варианты позиционирования (право, лево, верх, низ)
         const positions = [
             { side: 'right', x: markerX + MAX_DISTANCE, y: markerY },
             { side: 'left', x: markerX - MAX_DISTANCE, y: markerY },
@@ -243,11 +355,9 @@ function positionCityLabelsSmart(markers) {
             { side: 'bottom', x: markerX, y: markerY + MAX_DISTANCE }
         ];
         
-        // Ищем лучшую позицию без перекрытий
-        let bestPosition = positions[0]; // По умолчанию справа
+        let bestPosition = positions[0];
         let minOverlap = Infinity;
         
-        // Предварительно вычисляем размер названия
         name.style.display = 'block';
         name.style.position = 'absolute';
         name.style.left = '0';
@@ -256,7 +366,6 @@ function positionCityLabelsSmart(markers) {
         const nameWidth = nameRect.width;
         const nameHeight = nameRect.height;
         
-        // Пробуем все позиции
         for (const pos of positions) {
             let overlapCount = 0;
             const testRect = {
@@ -266,17 +375,15 @@ function positionCityLabelsSmart(markers) {
                 bottom: pos.y + nameHeight/2
             };
             
-            // Проверяем перекрытие с уже размещенными названиями
             for (const existing of labelPositions) {
                 if (rectsOverlap(testRect, existing.rect)) {
                     overlapCount++;
                 }
             }
             
-            // Проверяем, выходит ли за пределы контейнера
             if (testRect.left < 0 || testRect.right > containerRect.width ||
                 testRect.top < 0 || testRect.bottom > containerRect.height) {
-                overlapCount += 2; // Штраф за выход за границы
+                overlapCount += 2;
             }
             
             if (overlapCount < minOverlap) {
@@ -284,13 +391,11 @@ function positionCityLabelsSmart(markers) {
                 bestPosition = pos;
             }
             
-            // Если нашли позицию без перекрытий - останавливаемся
             if (overlapCount === 0) {
                 break;
             }
         }
         
-        // Применяем лучшую позицию
         let cssPosition = {};
         switch(bestPosition.side) {
             case 'right':
@@ -327,10 +432,8 @@ function positionCityLabelsSmart(markers) {
                 break;
         }
         
-        // Применяем стили
         Object.assign(name.style, cssPosition);
         
-        // Сохраняем позицию для проверки перекрытий
         labelPositions.push({
             cityId: marker.cityId,
             rect: {
@@ -343,7 +446,6 @@ function positionCityLabelsSmart(markers) {
     });
 }
 
-// Проверка пересечения прямоугольников
 function rectsOverlap(rect1, rect2) {
     return !(rect1.right < rect2.left || 
              rect1.left > rect2.right || 
@@ -351,7 +453,6 @@ function rectsOverlap(rect1, rect2) {
              rect1.top > rect2.bottom);
 }
 
-// 3. Загрузить список городов (ВСЕ города с сортировкой по количеству выпускников)
 function loadCitiesList() {
     const container = document.getElementById('citiesList');
     if (!container) {
@@ -361,7 +462,6 @@ function loadCitiesList() {
     
     container.innerHTML = '';
     
-    // Создаем массив всех городов с информацией о выпускниках
     const citiesWithInfo = citiesData.cities.map(city => {
         const peopleCount = getPeopleCount(city.id);
         return {
@@ -373,21 +473,12 @@ function loadCitiesList() {
         };
     });
     
-    // СОРТИРОВКА: сначала города с выпускниками (от большего к меньшему), затем без выпускников
     citiesWithInfo.sort((a, b) => {
-        // Если оба города имеют выпускников
         if (a.hasPeople && b.hasPeople) {
-            return b.peopleCount - a.peopleCount; // По убыванию количества
+            return b.peopleCount - a.peopleCount;
         }
-        // Если только a имеет выпускников
-        if (a.hasPeople && !b.hasPeople) {
-            return -1; // a идет перед b
-        }
-        // Если только b имеет выпускников
-        if (!a.hasPeople && b.hasPeople) {
-            return 1; // b идет перед a
-        }
-        // Если оба не имеют выпускников - сортируем по алфавиту
+        if (a.hasPeople && !b.hasPeople) return -1;
+        if (!a.hasPeople && b.hasPeople) return 1;
         return a.name.localeCompare(b.name);
     });
     
@@ -396,18 +487,11 @@ function loadCitiesList() {
         return;
     }
     
-    // Статистика для отладки
-    console.log(`Всего городов: ${citiesWithInfo.length}`);
-    console.log(`Городов с выпускниками: ${citiesWithInfo.filter(c => c.hasPeople).length}`);
-    console.log(`Городов без выпускников: ${citiesWithInfo.filter(c => !c.hasPeople).length}`);
-    
-    // Показываем все города
     citiesWithInfo.forEach(cityInfo => {
         const item = document.createElement('div');
         item.className = 'city-item';
         item.setAttribute('data-city', cityInfo.id);
         
-        // Разный стиль для городов с людьми и без
         if (!cityInfo.hasPeople) {
             item.classList.add('city-empty');
         }
@@ -423,7 +507,7 @@ function loadCitiesList() {
         `;
         
         item.addEventListener('click', function() {
-            showCityPeople(cityInfo.id, 'list'); // Источник - список
+            showCityPeople(cityInfo.id, 'list');
         });
         
         item.addEventListener('mouseenter', function() {
@@ -440,7 +524,7 @@ function loadCitiesList() {
     });
 }
 
-// 4. Показать людей в городе
+// 4. Показать людей в городе (С КЛИКАБЕЛЬНЫМИ ФОТО)
 function showCityPeople(cityId, source = 'map') {
     const city = getCityById(cityId);
     if (!city) return;
@@ -450,10 +534,7 @@ function showCityPeople(cityId, source = 'map') {
     const tooltip = document.getElementById('peopleTooltip');
     const peopleList = document.getElementById('peopleList');
     
-    // Заголовок
     document.getElementById('tooltipCityName').textContent = city.name;
-    
-    // Список людей
     peopleList.innerHTML = '';
     
     if (people.length === 0) {
@@ -463,17 +544,33 @@ function showCityPeople(cityId, source = 'map') {
             const card = document.createElement('div');
             card.className = 'person-card';
             
-            const safePhoto = (person.photo || '').replace(/'/g, "\\'");
+            const mainPhoto = person.photo1 || person.photo;
+            const secondPhoto = person.photo2 || person.photo1 || person.photo;
+            const hasSecondPhoto = secondPhoto && secondPhoto.trim() !== "" && secondPhoto !== mainPhoto;
+            
+            // Экранируем кавычки для безопасной передачи в onclick
+            const safeMainPhoto = (mainPhoto || '').replace(/'/g, "\\'");
+            const safeSecondPhoto = (secondPhoto || '').replace(/'/g, "\\'");
             const safeName = (person.name || '').replace(/'/g, "\\'");
+            const safeCityId = (cityId || '').replace(/'/g, "\\'");
             
             card.innerHTML = `
-                <img src="${person.photo}" 
-                     alt="${person.name}" 
-                     class="person-photo"
-                     onclick="openPhotoModal('${safePhoto}', '${safeName}')">
+                <div class="person-photos">
+                    <img src="${mainPhoto}" 
+                         alt="${person.name}" 
+                         class="person-photo main-photo"
+                         onclick="openPhotoModal('${safeMainPhoto}', '${safeName}', '${safeCityId}', ${person.id}, 0)">
+                    ${hasSecondPhoto ? 
+                        `<img src="${secondPhoto}" 
+                              alt="${person.name}" 
+                              class="person-photo second-photo"
+                              onclick="openPhotoModal('${safeSecondPhoto}', '${safeName}', '${safeCityId}', ${person.id}, 1)">` 
+                        : ''}
+                </div>
                 <div class="person-info">
                     <div class="person-name">${person.name}</div>
-                    <div class="person-company">${person.position}<br>${person.company}</div>
+                    <div class="person-position">${person.position}</div>
+                    <div class="person-company">${person.company}</div>
                 </div>
             `;
             
@@ -481,7 +578,6 @@ function showCityPeople(cityId, source = 'map') {
         });
     }
     
-    // ОБНОВЛЕНО: Для мобильных устройств всегда показываем tooltip по центру
     const isMobile = window.innerWidth <= 768;
     
     if (isMobile) {
@@ -496,7 +592,6 @@ function showCityPeople(cityId, source = 'map') {
     
     currentSelectedCity = cityId;
     
-    // Активируем город в списке
     document.querySelectorAll('.city-item').forEach(item => {
         item.classList.remove('active');
         if (item.getAttribute('data-city') === cityId) {
@@ -504,11 +599,9 @@ function showCityPeople(cityId, source = 'map') {
         }
     });
     
-    // Подсвечиваем маркер на карте
     highlightCityMarker(cityId);
 }
 
-// НОВАЯ ФУНКЦИЯ: Показывать tooltip по центру (для мобильных)
 function showTooltipCentered(tooltip) {
     tooltip.style.position = 'fixed';
     tooltip.style.top = '50%';
@@ -522,7 +615,6 @@ function showTooltipCentered(tooltip) {
     tooltip.style.display = 'block';
 }
 
-// Показать tooltip рядом с элементом списка
 function showTooltipNearList(cityId, tooltip) {
     const cityItem = document.querySelector(`.city-item[data-city="${cityId}"]`);
     if (!cityItem) {
@@ -530,21 +622,18 @@ function showTooltipNearList(cityId, tooltip) {
         return;
     }
     
-    // Для мобильных устройств используем центральное расположение
     if (window.innerWidth <= 768) {
         showTooltipCentered(tooltip);
         return;
     }
     
-    // Сначала скрываем
     tooltip.style.display = 'none';
     
-    // Получаем координаты
     const rect = cityItem.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
     
-    const tooltipWidth = 350;
+    const tooltipWidth = 380;
     const tooltipHeight = Math.min(600, window.innerHeight - 100);
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
@@ -553,28 +642,22 @@ function showTooltipNearList(cityId, tooltip) {
     let left = rect.left + rect.width + 20;
     let animationClass = 'tooltip-slide-right';
     
-    // Проверяем, помещается ли справа
     if (rect.left + rect.width + 20 + tooltipWidth > screenWidth) {
         left = Math.max(20, rect.left - tooltipWidth - 20);
         animationClass = 'tooltip-slide-left';
     }
     
-    // Проверяем по высоте
     if (rect.top + tooltipHeight > screenHeight - 50) {
         top = Math.max(50, screenHeight - tooltipHeight - 50);
     }
     
-    // Позиционируем
     tooltip.style.position = 'fixed';
     tooltip.style.top = `${top}px`;
     tooltip.style.left = `${left}px`;
     tooltip.className = 'people-tooltip ' + animationClass;
-    
-    // Показываем
     tooltip.style.display = 'block';
 }
 
-// Показать tooltip на карте (в правом верхнем углу)
 function showTooltipOnMap(tooltip) {
     tooltip.style.position = 'absolute';
     tooltip.style.top = '20px';
@@ -585,7 +668,6 @@ function showTooltipOnMap(tooltip) {
     tooltip.style.display = 'block';
 }
 
-// Подсветка маркера
 function highlightCityMarker(cityId) {
     document.querySelectorAll('.city-marker-container').forEach(marker => {
         marker.style.zIndex = '10';
@@ -629,7 +711,6 @@ function removeMarkerHighlight() {
     });
 }
 
-// Закрыть окно с людьми
 function closePeopleTooltip() {
     const tooltip = document.getElementById('peopleTooltip');
     if (tooltip) {
@@ -655,7 +736,6 @@ function closePeopleTooltip() {
 function setupApplicationListeners() {
     console.log('Настройка обработчиков событий...');
     
-    // 1. КНОПКА ЗАКРЫТИЯ ОКНА
     const closeBtn = document.getElementById('closeTooltip');
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
@@ -664,32 +744,25 @@ function setupApplicationListeners() {
         });
     }
     
-    // 2. ЗАКРЫТИЕ ПО ESCAPE
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closePeopleTooltip();
         }
     });
     
-    // 3. ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ ОКНА
     document.addEventListener('click', function(event) {
         const tooltip = document.getElementById('peopleTooltip');
         if (!tooltip || tooltip.style.display !== 'block') return;
         
         const clickedElement = event.target;
         
-        // Если кликнули на tooltip или его содержимое - НЕ закрываем
         if (tooltip.contains(clickedElement)) return;
         
-        // Если кликнули на кнопку закрытия - уже обработано
         if (clickedElement.id === 'closeTooltip' || clickedElement.closest('#closeTooltip')) return;
         
-        // Если кликнули на маркер на карте и tooltip открыт с карты - НЕ закрываем
         if (clickedElement.closest('.city-marker-container') && tooltipSource === 'map') return;
         
-        // Если кликнули на город в списке и tooltip открыт из списка - НЕ закрываем
         if (clickedElement.closest('.city-item') && tooltipSource === 'list') {
-            // Но если кликнули на другой город, переоткроем tooltip
             const cityItem = clickedElement.closest('.city-item');
             if (cityItem) {
                 const cityId = cityItem.getAttribute('data-city');
@@ -700,11 +773,9 @@ function setupApplicationListeners() {
             return;
         }
         
-        // В остальных случаях закрываем
         closePeopleTooltip();
     });
     
-    // 4. Поиск
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -719,7 +790,6 @@ function setupApplicationListeners() {
         });
     }
     
-    // 5. Предотвращаем закрытие при клике внутри tooltip
     const tooltip = document.getElementById('peopleTooltip');
     if (tooltip) {
         tooltip.addEventListener('click', function(e) {
@@ -727,7 +797,6 @@ function setupApplicationListeners() {
         });
     }
     
-    // 6. Обновляем позицию tooltip при изменении размера окна
     window.addEventListener('resize', function() {
         if (currentSelectedCity && tooltipSource === 'list') {
             const tooltip = document.getElementById('peopleTooltip');
@@ -735,13 +804,11 @@ function setupApplicationListeners() {
                 showTooltipNearList(currentSelectedCity, tooltip);
             }
         }
-        // Перерисовываем маркеры при изменении размера окна
         setTimeout(() => {
             createCityMarkers();
         }, 300);
     });
     
-    // 7. Обновляем позицию при скролле
     window.addEventListener('scroll', function() {
         if (currentSelectedCity && tooltipSource === 'list') {
             const tooltip = document.getElementById('peopleTooltip');
@@ -752,7 +819,6 @@ function setupApplicationListeners() {
     });
 }
 
-// Показать результаты поиска (ВСЕ найденные результаты)
 function displaySearchResults(results) {
     const container = document.getElementById('citiesList');
     if (!container) return;
@@ -764,10 +830,8 @@ function displaySearchResults(results) {
         return;
     }
     
-    // Объединяем результаты
     const allResults = [];
     
-    // Города из поиска
     results.cities.forEach(city => {
         const peopleCount = citiesData.people[city.id] ? citiesData.people[city.id].length : 0;
         allResults.push({
@@ -780,9 +844,7 @@ function displaySearchResults(results) {
         });
     });
     
-    // Люди из поиска
     results.people.forEach(person => {
-        // Проверяем, не добавлен ли уже этот город
         const cityAlreadyAdded = allResults.some(item => item.id === person.cityId);
         if (!cityAlreadyAdded) {
             const peopleCount = citiesData.people[person.cityId] ? citiesData.people[person.cityId].length : 0;
@@ -796,7 +858,6 @@ function displaySearchResults(results) {
             });
         }
         
-        // Добавляем и самого человека
         allResults.push({
             type: 'person',
             id: person.cityId,
@@ -808,23 +869,19 @@ function displaySearchResults(results) {
         });
     });
     
-    // СОРТИРОВКА результатов поиска
     allResults.sort((a, b) => {
-        // Сначала города, затем люди
         if (a.type === 'city' && b.type === 'person') return -1;
         if (a.type === 'person' && b.type === 'city') return 1;
         
-        // Если оба города
         if (a.type === 'city' && b.type === 'city') {
             if (a.hasPeople && b.hasPeople) {
-                return b.peopleCount - a.peopleCount; // По убыванию количества
+                return b.peopleCount - a.peopleCount;
             }
             if (a.hasPeople && !b.hasPeople) return -1;
             if (!a.hasPeople && b.hasPeople) return 1;
             return a.name.localeCompare(b.name);
         }
         
-        // Если оба человека
         if (a.type === 'person' && b.type === 'person') {
             return a.name.localeCompare(b.name);
         }
@@ -832,10 +889,8 @@ function displaySearchResults(results) {
         return 0;
     });
     
-    // Отображаем все результаты
     allResults.forEach(result => {
         if (result.type === 'city') {
-            // Отображаем город
             const item = document.createElement('div');
             item.className = 'city-item';
             item.setAttribute('data-city', result.id);
@@ -857,7 +912,6 @@ function displaySearchResults(results) {
             item.addEventListener('click', () => showCityPeople(result.id, 'list'));
             container.appendChild(item);
         } else {
-            // Отображаем человека
             const item = document.createElement('div');
             item.className = 'city-item person-search-result';
             item.setAttribute('data-city', result.id);
@@ -882,79 +936,8 @@ function displaySearchResults(results) {
     });
 }
 
-// ========== РАБОТА С ФОТО ==========
-
-// Открыть модальное окно с фото
-function openPhotoModal(photoUrl, personName) {
-    const modal = document.getElementById('photoModal');
-    const modalPhoto = document.getElementById('modalPhoto');
-    const modalInfo = document.getElementById('modalPhotoInfo');
-    
-    if (!modal || !modalPhoto || !modalInfo) return;
-    
-    modalPhoto.src = photoUrl;
-    modalPhoto.alt = personName;
-    modalInfo.textContent = personName;
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Добавляем обработчик для закрытия по Escape
-    document.addEventListener('keydown', handlePhotoEscapeKey);
-}
-
-// Закрыть модальное окно с фото
-function closePhotoModal() {
-    const modal = document.getElementById('photoModal');
-    
-    if (!modal) return;
-    
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    
-    // Удаляем обработчик Escape
-    document.removeEventListener('keydown', handlePhotoEscapeKey);
-}
-
-// Обработчик клавиши Escape для фото
-function handlePhotoEscapeKey(event) {
-    if (event.key === 'Escape') {
-        closePhotoModal();
-    }
-}
-
-// Делаем функции глобальными для вызова из HTML
-window.openPhotoModal = openPhotoModal;
-window.closePhotoModal = closePhotoModal;
-
 // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 
-// Получить количество людей в городе
-function getPeopleCount(cityId) {
-    return citiesData.people[cityId] ? citiesData.people[cityId].length : 0;
-}
-
-// Получить город по ID
-function getCityById(cityId) {
-    return citiesData.cities.find(city => city.id === cityId);
-}
-
-// Получить все города
-function getAllCities() {
-    return citiesData.cities;
-}
-
-// Функция для обновления интерфейса после изменений данных
-function refreshInterface() {
-    if (typeof updateStatistics === 'function') updateStatistics();
-    if (typeof createCityMarkers === 'function') createCityMarkers();
-    if (typeof loadCitiesList === 'function') loadCitiesList();
-}
-
-// Обновляем интерфейс при загрузке
-setTimeout(refreshInterface, 500);
-
-// Добавить кнопку выхода
 function addLogoutButton() {
     const header = document.querySelector('header .header-content');
     if (!header) return;
@@ -974,49 +957,11 @@ function addLogoutButton() {
     header.appendChild(logoutBtn);
 }
 
-// Простая версия для мобильных
-function simpleMobileAdaptation() {
-    if (!isMobileDevice()) return;
-    
-    const cityNames = document.querySelectorAll('.city-name-on-map');
-    const viewportWidth = window.innerWidth;
-    const baseWidth = 375; // iPhone шириной
-    
-    // Коэффициент масштаба
-    const scaleFactor = viewportWidth / baseWidth;
-    
-    cityNames.forEach(name => {
-        // Базовый размер шрифта
-        let fontSize = 12;
-        
-        // Уменьшаем при увеличении
-        if (scaleFactor < 0.9) { // Увеличено
-            fontSize = 10;
-        } else if (scaleFactor < 0.7) { // Сильно увеличено
-            fontSize = 8;
-        } else if (scaleFactor > 1.3) { // Уменьшено
-            fontSize = 14;
-        }
-        
-        // Для длинных названий делаем еще меньше
-        if (name.textContent.length > 12) {
-            fontSize = Math.max(8, fontSize - 2);
-        }
-        
-        name.style.fontSize = `${fontSize}px`;
-        name.style.lineHeight = '1.2';
-    });
+function refreshInterface() {
+    if (typeof updateStatistics === 'function') updateStatistics();
+    if (typeof createCityMarkers === 'function') createCityMarkers();
+    if (typeof loadCitiesList === 'function') loadCitiesList();
 }
 
-// Добавьте в обработчик resize
-window.addEventListener('resize', function() {
-    if (isMobileDevice()) {
-        simpleMobileAdaptation();
-    }
-});
-
-// Вызовите при загрузке
-setTimeout(simpleMobileAdaptation, 500);
-
-// Вызываем после инициализации
+setTimeout(refreshInterface, 500);
 setTimeout(addLogoutButton, 1000);
